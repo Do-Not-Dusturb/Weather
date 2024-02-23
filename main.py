@@ -1,4 +1,7 @@
+from flask import Flask, render_template, request
 import requests
+
+app = Flask(__name__)
 
 def get_weather(api_key, city):
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
@@ -13,14 +16,22 @@ def get_weather(api_key, city):
         feels_like = main_data["feels_like"]
         description = data["weather"][0]["description"]
 
-        print(f"Temperature: {temperature}°C")
-        print(f"Feels like: {feels_like}°C")
-        print(f"Weather description: {description}")
+        return {
+            "temperature": temperature,
+            "feels_like": feels_like,
+            "description": description
+        }
     else:
-        print("City not found")
+        return {"error": "City not found"}
 
-# Set your OpenWeatherMap API key here
-API_KEY = "3ccb53d4c43819a246d23fa0381a146b"
-city_name = input("Enter city name: ")
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        city = request.form['city']
+        API_KEY = "3ccb53d4c43819a246d23fa0381a146b"  # Set your OpenWeatherMap API key here
+        weather_data = get_weather(API_KEY, city)
+        return render_template('index.html', weather=weather_data, city=city)
+    return render_template('index.html')
 
-get_weather(API_KEY, city_name)
+if __name__ == '__main__':
+    app.run(debug=True)
